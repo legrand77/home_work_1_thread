@@ -26,11 +26,6 @@ auto Summa(vector<int> &v, vector<int> &v1, vector<int>& v2, int x, int y) {
 	return time.count();
 }
 
-auto Summa_start(vector<int>& v, vector<int>& v1, vector<int>& v2, int x, int y) {
-	auto start = chrono::high_resolution_clock::now();
-	Summa_one(v, v1, v2, x, y);
-	return start;
-}
 auto Summa_end(vector<int>& v, vector<int>& v1, vector<int>& v2, int x, int y) {
 	Summa_one(v, v1, v2, x, y);
 	auto end = chrono::high_resolution_clock::now();
@@ -65,7 +60,6 @@ int main(){
 			generate_1(t[i]);
 	};
 
-	chrono::high_resolution_clock::time_point R1{};
 	chrono::high_resolution_clock::time_point R2{};
 	vector<thread> T;
 	
@@ -80,73 +74,76 @@ int main(){
 	}
 	cout  << endl;
 
-	this_thread::sleep_for(500ms);
+	this_thread::sleep_for(100ms);
 
 	cout << "2 потоков  ";
 	for (int i = 0; i < (dec*2+3); i += 3) {
-		this_thread::sleep_for(300ms); 
-		T.push_back(thread([&]() {R1=(Summa_start(ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), 0, ref(d[i / 3]) * 0.5));}));
+		this_thread::sleep_for(200ms); 
+		auto start = chrono::high_resolution_clock::now();
+		T.push_back(thread(Summa_one, ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), 0, ref(d[i / 3]) * 0.5));
 		T.push_back(thread([&]() {R2=(Summa_end(ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), ref(d[i / 3]) * 0.5, ref(d[i / 3]))); }));
-		this_thread::sleep_for(300ms);
-		chrono::duration<double, milli> time = R2-R1;
+		this_thread::sleep_for(200ms);
+		chrono::duration<double, milli> time = R2 - start;
 		cout << time.count() << " ms           ";
 		
 	};
 	cout << endl;
-	this_thread::sleep_for(500ms);
+	this_thread::sleep_for(100ms);
 
    cout << "4 потоков  ";
+     auto start = chrono::high_resolution_clock::now();
 	for (int i = 0; i < (dec * 2 + 3); i += 3) {
-		this_thread::sleep_for(300ms);
-		T.push_back(thread ([&]() {R1 = Summa_start(ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), 0, ref(d[i / 3]) * 0.25); }));
-		T.push_back(thread (Summa_one,ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), ref(d[i / 3])*0.25, ref(d[i / 3])*0.5));
-		T.push_back(thread (Summa_one,ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), ref(d[i / 3])*0.5, ref(d[i / 3])*0.75));
-		T.push_back(thread ([&]() {R2 = Summa_end(ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), ref(d[i / 3])*0.75, ref(d[i / 3])); }));
-		this_thread::sleep_for(300ms);
-		chrono::duration<double, milli> time = R2-R1;
+		this_thread::sleep_for(200ms);
+		auto start = chrono::high_resolution_clock::now();
+		T.push_back(thread (Summa_one,ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), 0, (ref(d[i / 3])/4)));
+		T.push_back(thread (Summa_one,ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), ref(d[i / 3])/4, ref(d[i / 3])/2));
+		T.push_back(thread (Summa_one,ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), ref(d[i / 3])/2, (ref(d[i / 3])*0.75)));
+		T.push_back(thread ([&]() {R2 = Summa_end(ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), (ref(d[i / 3])*0.75), (ref(d[i / 3]))); }));
+		this_thread::sleep_for(200ms);
+		chrono::duration<double, milli> time = R2-start;
 		cout << time.count() << " ms           ";
 		
 	}
 	cout << endl;
 
-	this_thread::sleep_for(500ms);
+	this_thread::sleep_for(100ms);
 
 	 cout << "8 потоков  ";
 	for (int i = 0; i < (dec * 2 + 3); i += 3) {
-		this_thread::sleep_for(300ms);
-		T.push_back(thread ([&]() {R1 = (Summa_start(ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), 0, ref(d[i / 3]) * 0.125)); }));
+		this_thread::sleep_for(200ms);
+		auto start = chrono::high_resolution_clock::now();
+		T.push_back(thread (Summa_one, ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), 0, ref(d[i / 3]) * 0.125));
 		
 		for (int j = 1; j < 7; j++) {
 			T.push_back(thread(Summa_one,ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), (ref(d[i / 3]) * 0.125 * j), (ref(d[i / 3]) * 0.125 * (j + 1))));
 		};
 		T.push_back(thread ([&]() {R2=Summa_end(ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), ref(d[i / 3]) * 0.125 * 7, ref(d[i / 3])); }));
-		this_thread::sleep_for(300ms);
-		chrono::duration<double, milli> time = R2-R1;
+		this_thread::sleep_for(200ms);
+		chrono::duration<double, milli> time = R2 - start;
 		cout << time.count() << " ms           ";
 		
 	}
 	
 	cout << endl; 
 
-	this_thread::sleep_for(500ms);
+	this_thread::sleep_for(100ms);
 	
 	cout << "16 потоков ";
 
 	for (int i = 0; i < (dec * 2 + 3); i += 3) {
-		this_thread::sleep_for(300ms);
-		T.push_back(thread([&]() {R1=(Summa_start(ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), 0, ref(d[i / 3]) * 0.062)); }));
+		this_thread::sleep_for(200ms);
+		auto start = chrono::high_resolution_clock::now();
+		T.push_back(thread(Summa_one, ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), 0, ref(d[i / 3]) * 0.062));
 		
 		for (int j = 1; j < 15; j++) {
 			T.push_back(thread([&]() {Summa_one(ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), (ref(d[i / 3]) * 0.062 * j), (ref(d[i / 3]) * 0.062 * (j + 1))); }));
 		};
 		T.push_back(thread([&]() {R2=(Summa_end(ref(t[i]), ref(t[i + 1]), ref(t[i + 2]), ref(d[i / 3]) * 0.062 * 15, ref(d[i / 3]))); }));
-		this_thread::sleep_for(300ms);
-		chrono::duration<double, milli> time = R2-R1;
+		this_thread::sleep_for(200ms);
+		chrono::duration<double, milli> time = R2 - start;
 		cout << time.count() << " ms           ";
 		
 	};
-
-	this_thread::sleep_for(500ms);
 
 	for (auto& thr : T)
 		{
